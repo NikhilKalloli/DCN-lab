@@ -1,66 +1,72 @@
 import java.util.Scanner;
 
-public class TDMsimulator {
+class TDMsimulator {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
         System.out.print("Enter the number of stations (maximum 10): ");
-        int n = sc.nextInt();
-        int[] bt = new int[n]; // processing times for each station
-        int[] rem_bt = new int[n]; // remaining times for each station
-        int[] tat = new int[n]; // completion times for each station
-        int[] wt = new int[n]; // waiting times for each station
-        float awt = 0, atat = 0; // average waiting and turnaround times
+        int numberOfStations = sc.nextInt();
 
-        System.out.println("Enter the processing time for each channel");
-        for (int i = 0; i < n; i++) {
-            System.out.print("S" + (i+1) + " = ");
-            bt[i] = sc.nextInt();
-            rem_bt[i] = bt[i];
+        int[] processingTime = new int[numberOfStations];
+        int[] waitingTime = new int[numberOfStations]; 
+        int[] turnaroundTime = new int[numberOfStations]; 
+        int[] remainingTime = new int[numberOfStations]; 
+
+        System.out.println("Enter the processing time for each station:");
+        for (int i = 0; i < numberOfStations; i++) {
+            System.out.print("Station " + (i + 1) + ": ");
+            processingTime[i] = sc.nextInt();
+            remainingTime[i] = processingTime[i];
         }
 
         System.out.print("Enter the frame size: ");
-        int qt = sc.nextInt();
+        int frameSize = sc.nextInt();
 
-        int count = 0, sq = 0;
+        int currentTime = 0; 
         while (true) {
-            for (int i = 0; i < n; i++) {
-                if (rem_bt[i] == 0) {
-                    count++;
-                    continue;
-                }
+            boolean allStationsDone = true;
 
-                int temp = qt;
-                if (rem_bt[i] > qt) {
-                    rem_bt[i] -= qt;
-                } else {
-                    temp = rem_bt[i];
-                    rem_bt[i] = 0;
+            for (int i = 0; i < numberOfStations; i++) {
+                if (remainingTime[i] > 0) {
+                    allStationsDone = false;
+                
+                    if (remainingTime[i] > frameSize) {
+                        currentTime += frameSize; 
+                        remainingTime[i] -= frameSize;
+                    }
+                    else {
+                        currentTime += remainingTime[i];
+                        remainingTime[i] = 0; 
+                        turnaroundTime[i] = currentTime;
+                    }
                 }
-
-                sq += temp;
-                tat[i] = sq;
             }
 
-            if (count == n) {
-                break;
-            }
-            count = 0;
+            if (allStationsDone) break;
         }
 
-        System.out.println("--------------------------------------------------------");
-        System.out.println("Station   Processing Time   Completion Time   Waiting Time");
-        System.out.println("--------------------------------------------------------");
-        for (int i = 0; i < n; i++) {
-            wt[i] = tat[i] - bt[i];
-            awt += wt[i];
-            atat += tat[i];
-            System.out.println("S" + (i+1) + "\t\t" + bt[i] + "\t\t\t" + tat[i] + "\t\t\t" + wt[i]);
+        float totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+        System.out.println("----------------------------------------------------------");
+        System.out.println("Station\tProcessing Time\tCompletion Time\tWaiting Time");
+        System.out.println("----------------------------------------------------------");
+
+        for (int i = 0; i < numberOfStations; i++) {
+            
+            waitingTime[i] = turnaroundTime[i] - processingTime[i];
+            totalWaitingTime += waitingTime[i];
+            totalTurnaroundTime += turnaroundTime[i];
+
+            System.out.println((i + 1) + "\t\t" + processingTime[i] + "\t\t" + turnaroundTime[i] + "\t\t" + waitingTime[i]);
         }
 
-        awt /= n;
-        atat /= n;
-        System.out.println("Average Waiting Time: " + awt);
-        System.out.println("Average Turnaround Time: " + atat);
+        float averageWaitingTime = totalWaitingTime / numberOfStations;
+        float averageTurnaroundTime = totalTurnaroundTime / numberOfStations;
+
+        System.out.println("----------------------------------------------------------");
+        System.out.println("Average Waiting Time: " + averageWaitingTime);
+        System.out.println("Average Turnaround Time: " + averageTurnaroundTime);
+
+        sc.close();
     }
 }
